@@ -21,31 +21,7 @@
 
 ### 集成
 
-- 在项目Project build.gradle添加聚智maven私服仓库
-
-```
-buildscript {
-    repositories {
-        jcenter()
-        maven{ url 'http://maven.juzhionline.com/repository/maven-public/'}
-        ...
-    }
-
-    dependencies {
-        ...
-    }
-}
-
-allprojects {
-    repositories {
-        jcenter()
-        maven{ url 'http://maven.juzhionline.com/repository/maven-public/'}
-        ...
-    }
-}
-```
-
-- 在主app build.gradle添加依赖
+- 在app build.gradle添加依赖
 
 ```
     implementation 'cn.imeina:google-billing:1.0.0'
