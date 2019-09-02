@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <data>
+
+    </data>
+
+    <LinearLayout
+        android:id="@+id/network_error"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/color_network_error_bg"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <com.google.billing.widget.ITextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="60sp"
+            android:text="@string/if_network_error"
+            android:textColor="@color/color_network_error"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="@string/network_error"
+            android:textColor="@color/color_network_error"
+            android:textSize="16sp"/>
+    </LinearLayout>
+</layout>

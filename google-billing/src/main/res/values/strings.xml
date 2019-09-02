@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">googlebilling</string>
+    <string name="loading">Loading&#8230;</string>
+    <string name="if_network_error">&#xe62c;</string>
+    <string name="if_back">&#xe600;</string>
+    <string name="network_error">The network is not available. Please check!</string>
+    <string name="parameter_error">Parameter error!</string>
+</resources>

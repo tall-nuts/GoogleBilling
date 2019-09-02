@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="white">#FFFFFF</color>
+    <color name="transparent">#00000000</color>
+    <color name="color_network_error">#B7B7B7</color>
+    <color name="color_title_text">#000000</color>
+    <color name="color_purchases_bg">#FFFFFF</color>
+    <color name="color_toolbar_bg">#FFFFFF</color>
+    <color name="color_progress">#000000</color>
+    <color name="color_loading_text">#FFFFFF</color>
+    <color name="color_back">#000000</color>
+    <color name="color_network_error_bg">#FFFFFF</color>
+</resources>

@@ -1,0 +1,2 @@
+include ':app', ':google-billing'
+rootProject.name='GoogleBilling'
