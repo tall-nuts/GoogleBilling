@@ -5,11 +5,11 @@
 [谷歌应用内支付文档](https://developer.android.com/google/play/billing/billing_overview.html?hl=zh-CN)
 
 
-![支付方式一](https://github.com/pengfeigao/GoogleBilling/screenshots/billing01.png) 
-![支付方式二](https://github.com/pengfeigao/GoogleBilling/screenshots/images/billing02.png)
-![支付方式一](https://github.com/pengfeigao/GoogleBilling/screenshots/images/billing03.png) 
-![支付方式二](https://github.com/pengfeigao/GoogleBilling/screenshots/images/billing04.png)
-![支付方式一](https://github.com/pengfeigao/GoogleBilling/screenshots/images/billing05.png) 
+![支付方式一](https://github.com/pengfeigao/GoogleBilling/tree/master/screenshots/billing01.png) 
+![支付方式二](https://github.com/pengfeigao/GoogleBilling/tree/master/screenshots/images/billing02.png)
+![支付方式一](https://github.com/pengfeigao/GoogleBilling/tree/master/screenshots/images/billing03.png) 
+![支付方式二](https://github.com/pengfeigao/GoogleBilling/tree/master/screenshots/images/billing04.png)
+![支付方式一](https://github.com/pengfeigao/GoogleBilling/tree/master/screenshots/images/billing05.png) 
 
 ### CHANGELOG
 
