@@ -4,10 +4,14 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.IntentFilter;
 
+import com.android.billingclient.api.AcknowledgePurchaseParams;
+import com.android.billingclient.api.AcknowledgePurchaseResponseListener;
 import com.android.billingclient.api.BillingClient;
 import com.android.billingclient.api.BillingClientStateListener;
 import com.android.billingclient.api.BillingFlowParams;
 import com.android.billingclient.api.BillingResult;
+import com.android.billingclient.api.ConsumeParams;
+import com.android.billingclient.api.ConsumeResponseListener;
 import com.android.billingclient.api.Purchase;
 import com.android.billingclient.api.PurchasesUpdatedListener;
 import com.android.billingclient.api.SkuDetails;
@@ -180,6 +184,44 @@ public class BillingManager implements PurchasesUpdatedListener {
             }
         };
         executeServiceRequest(runnable);
+    }
+
+    /**
+     * 消耗商品
+     */
+    public void consumeAsync(String purchaseToken, String payload) {
+        ConsumeParams consumeParams =
+                ConsumeParams.newBuilder()
+                        .setPurchaseToken(purchaseToken)
+                        .setDeveloperPayload(payload)
+                        .build();
+        mBillingClient.consumeAsync(consumeParams, new ConsumeResponseListener() {
+            @Override
+            public void onConsumeResponse(BillingResult billingResult, String purchaseToken) {
+                if (billingUpdatesListener != null) {
+                    billingUpdatesListener.onConsumeFinished(purchaseToken, billingResult);
+                }
+            }
+        });
+    }
+
+    /**
+     * 对非消耗型商品进行失效处理
+     */
+    public void acknowledgePurchase(String purchaseToken, String payload) {
+        AcknowledgePurchaseParams acknowledgePurchaseParams =
+                AcknowledgePurchaseParams.newBuilder()
+                        .setPurchaseToken(purchaseToken)
+                        .setDeveloperPayload(payload)
+                        .build();
+        mBillingClient.acknowledgePurchase(acknowledgePurchaseParams, new AcknowledgePurchaseResponseListener() {
+            @Override
+            public void onAcknowledgePurchaseResponse(BillingResult billingResult) {
+                if (billingUpdatesListener != null) {
+                    billingUpdatesListener.onAcknowledgePurchaseResponse(billingResult);
+                }
+            }
+        });
     }
 
     /**

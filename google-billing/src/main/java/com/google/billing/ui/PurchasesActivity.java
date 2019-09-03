@@ -339,6 +339,8 @@ public class PurchasesActivity extends AppCompatActivity {
                         intent.putExtra("message", "Purchase success!");
                         intent.putExtra("data", purchaseInfo);
                         LocalBroadcastManager.getInstance(activity).sendBroadcast(intent);
+                        // 消耗商品
+                        billingManager.consumeAsync(purchase.getPurchaseToken(), purchase.getDeveloperPayload());
                     }
                 }
 

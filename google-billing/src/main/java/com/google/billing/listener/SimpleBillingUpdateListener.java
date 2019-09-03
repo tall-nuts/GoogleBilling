@@ -1,5 +1,6 @@
 package com.google.billing.listener;
 
+import com.android.billingclient.api.BillingResult;
 import com.android.billingclient.api.Purchase;
 import com.android.billingclient.api.SkuDetails;
 import java.util.List;
@@ -20,7 +21,12 @@ public abstract class SimpleBillingUpdateListener extends BaseBillingUpdateListe
     }
 
     @Override
-    public void onConsumeFinished(String token, int result) {
+    public void onConsumeFinished(String token, BillingResult result) {
+
+    }
+
+    @Override
+    public void onAcknowledgePurchaseResponse(BillingResult result) {
 
     }
 
