@@ -3,7 +3,6 @@ package com.google.billing;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.IntentFilter;
-
 import com.android.billingclient.api.AcknowledgePurchaseParams;
 import com.android.billingclient.api.AcknowledgePurchaseResponseListener;
 import com.android.billingclient.api.BillingClient;
@@ -22,15 +21,19 @@ import com.google.billing.listener.BaseBillingUpdateListener;
 import com.google.billing.receiver.BillingPurchasesReceiver;
 import com.google.billing.ui.PurchasesActivity;
 import com.google.billing.utils.LogUtils;
-
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
-
 import androidx.annotation.Nullable;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 /**
+ * 使用Google Play结算版本2.0及以上，必须在3天内确认所有购买交易。如果没有正确确认，将导致系统对相应的购买交易按退款处理。
+ * 确认购买交易有3种方式：
+ * 1. 消耗型商品，客户端使用API consumeAsync()
+ * 2. 对于非消耗型商品，客户端使用API acknowledgePurchase()
+ * 3. 还可以使用服务器API新增的acknowledge()方法进行消耗确认
+ *
  * @author gaopengfei on 2019/05/06.
  */
 public class BillingManager implements PurchasesUpdatedListener {
@@ -124,6 +127,39 @@ public class BillingManager implements PurchasesUpdatedListener {
     }
 
     /**
+     * 确认历史购买，最好在每次启动应用前执行一次，防止有未正常确认的商品而导致三天后退款
+     * @param skuType 商品类型 {@link com.android.billingclient.api.BillingClient.SkuType}
+     */
+    public void confirmHistoryPurchase(final String skuType) {
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                // 同步查询历史购买
+                Purchase.PurchasesResult purchasesResult = mBillingClient.queryPurchases(skuType);
+                if (purchasesResult != null && purchasesResult.getResponseCode() == BillingClient.BillingResponseCode.OK){
+                    List<Purchase> purchasesList = purchasesResult.getPurchasesList();
+                    if (purchasesList != null && !purchasesList.isEmpty()){
+                        for (Purchase purchase : purchasesList) {
+                            if (purchase.getPurchaseState() == Purchase.PurchaseState.PURCHASED){
+                                if (!purchase.isAcknowledged()){
+                                    if (BillingClient.SkuType.SUBS.equals(skuType)){
+                                        acknowledgePurchase(purchase.getPurchaseToken(), purchase.getDeveloperPayload());
+                                        LogUtils.e("确认非消耗型商品购买成功->[orderId：" + purchase.getOrderId() + "]");
+                                    }else if (BillingClient.SkuType.INAPP.equals(skuType)){
+                                        consumeAsync(purchase.getPurchaseToken(), purchase.getDeveloperPayload());
+                                        LogUtils.e("确认消耗型商品购买成功->[orderId：" + purchase.getOrderId() + "]");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        };
+        executeServiceRequest(runnable);
+    }
+
+    /**
      * <p>
      * 急速购买
      * 商品查询成功后直接进入购买流程，如果查询商品失败则直接执行{@link BaseBillingUpdateListener#onPurchasesFailure(int, String)}
@@ -187,7 +223,7 @@ public class BillingManager implements PurchasesUpdatedListener {
     }
 
     /**
-     * 消耗商品
+     * 对消耗型商品进行确认购买处理
      */
     public void consumeAsync(String purchaseToken, String payload) {
         ConsumeParams consumeParams =
@@ -206,7 +242,7 @@ public class BillingManager implements PurchasesUpdatedListener {
     }
 
     /**
-     * 对非消耗型商品进行失效处理
+     * 对非消耗型商品进行确认购买处理
      */
     public void acknowledgePurchase(String purchaseToken, String payload) {
         AcknowledgePurchaseParams acknowledgePurchaseParams =
