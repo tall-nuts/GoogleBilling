@@ -58,8 +58,12 @@ BaseBillingUpdateListener billingUpdateListener = new SimpleBillingUpdateListene
     @Override
     public void onPurchasesUpdated(List<Purchase> purchases) {
         // 此处为支付成功回调，可以拿到支付成功的商品调用我们自己的业务接口来对商品购买状态进行二次校验
-        Toast.makeText(MainActivity.this, "购买成功", Toast.LENGTH_SHORT).show();
-        Log.e(TAG, "购买成功：" + purchases.get(0).toString());
+        ...
+        // 如果后台通过二次校验并为该用户开通了权限或发放了对应的虚拟商品，则客户端需要做的是对该笔订单进行确认
+        // 注：若客户端不调用该方法，则必须由后端进行acknowledge()方法的调用来确认订单，否则不确认订单订单将会在3天后自动进行退款
+        
+        // 消耗型商品订单确认api：billingManager.consumeAsync(String purchaseToken, String payload);
+        // 非消耗型商品订单确认api：billingManager.acknowledgePurchase(String purchaseToken, String payload);
     }
 
     @Override
