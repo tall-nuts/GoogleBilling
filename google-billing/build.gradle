@@ -45,7 +45,7 @@ publish {
     userOrg = 'akid'
     groupId = 'cn.imeina'
     artifactId = 'google-billing'
-    publishVersion = '1.0.3'
+    publishVersion = '1.0.4'
     desc = 'This is Google Billing secondary packaging'
     website = 'https://github.com/pengfeigao/GoogleBilling'
 }

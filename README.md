@@ -13,6 +13,10 @@
 
 ### CHANGELOG
 
+### [V1.0.4] - [2020-03-09]
+
+- Fix: 修复BillingManager中空指针bug
+
 ### [V1.0.3] - [2020-02-03]
 
 - 升级依赖Google Billing2.1.0

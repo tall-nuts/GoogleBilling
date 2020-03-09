@@ -3,6 +3,10 @@ package com.google.billing;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.IntentFilter;
+
+import androidx.annotation.Nullable;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
 import com.android.billingclient.api.AcknowledgePurchaseParams;
 import com.android.billingclient.api.AcknowledgePurchaseResponseListener;
 import com.android.billingclient.api.BillingClient;
@@ -21,11 +25,10 @@ import com.google.billing.listener.BaseBillingUpdateListener;
 import com.google.billing.receiver.BillingPurchasesReceiver;
 import com.google.billing.ui.PurchasesActivity;
 import com.google.billing.utils.LogUtils;
+
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
-import androidx.annotation.Nullable;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 /**
  * 使用Google Play结算版本2.0及以上，必须在3天内确认所有购买交易。如果没有正确确认，将导致系统对相应的购买交易按退款处理。
@@ -94,40 +97,46 @@ public class BillingManager implements PurchasesUpdatedListener {
     /**
      * 异步查询商品信息
      *
-     * @param skuId 商品唯一ID
+     * @param skuId       商品唯一ID
      * @param billingType 商品类型 详见{@link com.android.billingclient.api.BillingClient.SkuType}
      */
-    public void querySkuDetailAsyn(String skuId, final String billingType) {
+    public void querySkuDetailAsyn(final String skuId, final String billingType) {
         LogUtils.e("异步查询商品详情-->[" + skuId + ",type:" + billingType + "]");
-        List<String> skuList = new ArrayList<>();
-        skuList.add(skuId);
-        SkuDetailsParams.Builder params = SkuDetailsParams.newBuilder();
-        params.setSkusList(skuList).setType(billingType);
-        mBillingClient.querySkuDetailsAsync(params.build(),
-                new SkuDetailsResponseListener() {
-                    @Override
-                    public void onSkuDetailsResponse(BillingResult billingResult, List<SkuDetails> skuDetailsList) {
-                        // Process the result.
-                        if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK && skuDetailsList != null) {
-                            if (billingUpdatesListener != null) {
-                                billingUpdatesListener.onQuerySkuDetailSuccess(skuDetailsList);
-                            }
-                            if (!skuDetailsList.isEmpty()) {
-                                for (SkuDetails skuDetails : skuDetailsList) {
-                                    LogUtils.e("异步查询商品详情成功--->[skuDetails:" + skuDetails.toString() + "]");
+        executeServiceRequest(new Runnable() {
+            @Override
+            public void run() {
+                List<String> skuList = new ArrayList<>();
+                skuList.add(skuId);
+                final SkuDetailsParams.Builder params = SkuDetailsParams.newBuilder();
+                params.setSkusList(skuList).setType(billingType);
+                mBillingClient.querySkuDetailsAsync(params.build(),
+                        new SkuDetailsResponseListener() {
+                            @Override
+                            public void onSkuDetailsResponse(BillingResult billingResult, List<SkuDetails> skuDetailsList) {
+                                // Process the result.
+                                if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK && skuDetailsList != null) {
+                                    if (billingUpdatesListener != null) {
+                                        billingUpdatesListener.onQuerySkuDetailSuccess(skuDetailsList);
+                                    }
+                                    if (!skuDetailsList.isEmpty()) {
+                                        for (SkuDetails skuDetails : skuDetailsList) {
+                                            LogUtils.e("异步查询商品详情成功--->[skuDetails:" + skuDetails.toString() + "]");
+                                        }
+                                    }
+                                } else {
+                                    if (billingUpdatesListener != null) {
+                                        billingUpdatesListener.onQuerySkuDetailFailure(billingResult.getResponseCode(), billingResult.getDebugMessage());
+                                    }
                                 }
                             }
-                        } else {
-                            if (billingUpdatesListener != null) {
-                                billingUpdatesListener.onQuerySkuDetailFailure(billingResult.getResponseCode(), billingResult.getDebugMessage());
-                            }
-                        }
-                    }
-                });
+                        });
+            }
+        });
     }
 
     /**
      * 确认历史购买，最好在每次启动应用前执行一次，防止有未正常确认的商品而导致三天后退款
+     *
      * @param skuType 商品类型 {@link com.android.billingclient.api.BillingClient.SkuType}
      */
     public void confirmHistoryPurchase(final String skuType) {
@@ -136,16 +145,16 @@ public class BillingManager implements PurchasesUpdatedListener {
             public void run() {
                 // 同步查询历史购买
                 Purchase.PurchasesResult purchasesResult = mBillingClient.queryPurchases(skuType);
-                if (purchasesResult != null && purchasesResult.getResponseCode() == BillingClient.BillingResponseCode.OK){
+                if (purchasesResult != null && purchasesResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
                     List<Purchase> purchasesList = purchasesResult.getPurchasesList();
-                    if (purchasesList != null && !purchasesList.isEmpty()){
+                    if (purchasesList != null && !purchasesList.isEmpty()) {
                         for (Purchase purchase : purchasesList) {
-                            if (purchase.getPurchaseState() == Purchase.PurchaseState.PURCHASED){
-                                if (!purchase.isAcknowledged()){
-                                    if (BillingClient.SkuType.SUBS.equals(skuType)){
+                            if (purchase.getPurchaseState() == Purchase.PurchaseState.PURCHASED) {
+                                if (!purchase.isAcknowledged()) {
+                                    if (BillingClient.SkuType.SUBS.equals(skuType)) {
                                         acknowledgePurchase(purchase.getPurchaseToken(), purchase.getDeveloperPayload());
                                         LogUtils.e("确认非消耗型商品购买成功->[orderId：" + purchase.getOrderId() + "]");
-                                    }else if (BillingClient.SkuType.INAPP.equals(skuType)){
+                                    } else if (BillingClient.SkuType.INAPP.equals(skuType)) {
                                         consumeAsync(purchase.getPurchaseToken(), purchase.getDeveloperPayload());
                                         LogUtils.e("确认消耗型商品购买成功->[orderId：" + purchase.getOrderId() + "]");
                                     }
@@ -165,35 +174,40 @@ public class BillingManager implements PurchasesUpdatedListener {
      * 商品查询成功后直接进入购买流程，如果查询商品失败则直接执行{@link BaseBillingUpdateListener#onPurchasesFailure(int, String)}
      * </p>
      *
-     * @param skuId 商品ID
+     * @param skuId       商品ID
      * @param billingType 商品类型
      */
-    public void quicknessPurchase(String skuId, String billingType) {
+    public void quicknessPurchase(final String skuId, final String billingType) {
         LogUtils.e("异步查询商品详情-->[" + skuId + ",type:" + billingType + "]");
-        List<String> skuList = new ArrayList<>();
-        skuList.add(skuId);
-        SkuDetailsParams.Builder params = SkuDetailsParams.newBuilder();
-        params.setSkusList(skuList).setType(billingType);
-        mBillingClient.querySkuDetailsAsync(params.build(),
-                new SkuDetailsResponseListener() {
-                    @Override
-                    public void onSkuDetailsResponse(BillingResult billingResult, List<SkuDetails> skuDetailsList) {
-                        // Process the result.
-                        if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK && skuDetailsList != null) {
-                            if (!skuDetailsList.isEmpty()) {
-                                for (SkuDetails skuDetails : skuDetailsList) {
-                                    // 发起内购
-                                    purchase(skuDetails);
-                                    LogUtils.e("查询商品详情成功--->[skuDetails:" + skuDetails.toString() + "]");
+        executeServiceRequest(new Runnable() {
+            @Override
+            public void run() {
+                List<String> skuList = new ArrayList<>();
+                skuList.add(skuId);
+                final SkuDetailsParams.Builder params = SkuDetailsParams.newBuilder();
+                params.setSkusList(skuList).setType(billingType);
+                mBillingClient.querySkuDetailsAsync(params.build(),
+                        new SkuDetailsResponseListener() {
+                            @Override
+                            public void onSkuDetailsResponse(BillingResult billingResult, List<SkuDetails> skuDetailsList) {
+                                // Process the result.
+                                if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK && skuDetailsList != null) {
+                                    if (!skuDetailsList.isEmpty()) {
+                                        for (SkuDetails skuDetails : skuDetailsList) {
+                                            // 发起内购
+                                            purchase(skuDetails);
+                                            LogUtils.e("查询商品详情成功--->[skuDetails:" + skuDetails.toString() + "]");
+                                        }
+                                    }
+                                } else {
+                                    if (billingUpdatesListener != null) {
+                                        billingUpdatesListener.onPurchasesFailure(billingResult.getResponseCode(), billingResult.getDebugMessage());
+                                    }
                                 }
                             }
-                        } else {
-                            if (billingUpdatesListener != null) {
-                                billingUpdatesListener.onPurchasesFailure(billingResult.getResponseCode(), billingResult.getDebugMessage());
-                            }
-                        }
-                    }
-                });
+                        });
+            }
+        });
     }
 
     public void quicknessPurchase(String url) {
@@ -225,18 +239,23 @@ public class BillingManager implements PurchasesUpdatedListener {
     /**
      * 对消耗型商品进行确认购买处理
      */
-    public void consumeAsync(String purchaseToken, String payload) {
-        ConsumeParams consumeParams =
-                ConsumeParams.newBuilder()
-                        .setPurchaseToken(purchaseToken)
-                        .setDeveloperPayload(payload)
-                        .build();
-        mBillingClient.consumeAsync(consumeParams, new ConsumeResponseListener() {
+    public void consumeAsync(final String purchaseToken, final String payload) {
+        executeServiceRequest(new Runnable() {
             @Override
-            public void onConsumeResponse(BillingResult billingResult, String purchaseToken) {
-                if (billingUpdatesListener != null) {
-                    billingUpdatesListener.onConsumeFinished(purchaseToken, billingResult);
-                }
+            public void run() {
+                ConsumeParams consumeParams =
+                        ConsumeParams.newBuilder()
+                                .setPurchaseToken(purchaseToken)
+                                .setDeveloperPayload(payload)
+                                .build();
+                mBillingClient.consumeAsync(consumeParams, new ConsumeResponseListener() {
+                    @Override
+                    public void onConsumeResponse(BillingResult billingResult, String purchaseToken) {
+                        if (billingUpdatesListener != null) {
+                            billingUpdatesListener.onConsumeFinished(purchaseToken, billingResult);
+                        }
+                    }
+                });
             }
         });
     }
@@ -244,18 +263,23 @@ public class BillingManager implements PurchasesUpdatedListener {
     /**
      * 对非消耗型商品进行确认购买处理
      */
-    public void acknowledgePurchase(String purchaseToken, String payload) {
-        AcknowledgePurchaseParams acknowledgePurchaseParams =
-                AcknowledgePurchaseParams.newBuilder()
-                        .setPurchaseToken(purchaseToken)
-                        .setDeveloperPayload(payload)
-                        .build();
-        mBillingClient.acknowledgePurchase(acknowledgePurchaseParams, new AcknowledgePurchaseResponseListener() {
+    public void acknowledgePurchase(final String purchaseToken, final String payload) {
+        executeServiceRequest(new Runnable() {
             @Override
-            public void onAcknowledgePurchaseResponse(BillingResult billingResult) {
-                if (billingUpdatesListener != null) {
-                    billingUpdatesListener.onAcknowledgePurchaseResponse(billingResult);
-                }
+            public void run() {
+                AcknowledgePurchaseParams acknowledgePurchaseParams =
+                        AcknowledgePurchaseParams.newBuilder()
+                                .setPurchaseToken(purchaseToken)
+                                .setDeveloperPayload(payload)
+                                .build();
+                mBillingClient.acknowledgePurchase(acknowledgePurchaseParams, new AcknowledgePurchaseResponseListener() {
+                    @Override
+                    public void onAcknowledgePurchaseResponse(BillingResult billingResult) {
+                        if (billingUpdatesListener != null) {
+                            billingUpdatesListener.onAcknowledgePurchaseResponse(billingResult);
+                        }
+                    }
+                });
             }
         });
     }
@@ -264,7 +288,7 @@ public class BillingManager implements PurchasesUpdatedListener {
      * 连接断开重试策略
      */
     private void executeServiceRequest(Runnable runnable) {
-        if (mIsServiceConnected) {
+        if (mBillingClient != null && mBillingClient.isReady() && mIsServiceConnected) {
             runnable.run();
         } else {
             startServiceConnection(runnable);
