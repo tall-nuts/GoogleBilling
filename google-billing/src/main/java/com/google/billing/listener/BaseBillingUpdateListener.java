@@ -2,6 +2,7 @@ package com.google.billing.listener;
 
 import com.android.billingclient.api.BillingResult;
 import com.android.billingclient.api.Purchase;
+import com.android.billingclient.api.PurchaseHistoryRecord;
 import com.android.billingclient.api.SkuDetails;
 import java.util.List;
 
@@ -18,6 +19,9 @@ public abstract class BaseBillingUpdateListener {
 
     /** 商品信息查询失败 */
     public abstract void onQuerySkuDetailFailure(int errorCode, String message);
+
+    /** 查询购买历史 */
+    public abstract void onPurchaseHistoryResponse(BillingResult billingResult, List<PurchaseHistoryRecord> list);
 
     /** 消耗商品完成 */
     public abstract void onConsumeFinished(String token, BillingResult result);

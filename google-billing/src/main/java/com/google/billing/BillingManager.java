@@ -3,10 +3,8 @@ package com.google.billing;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.IntentFilter;
-
 import androidx.annotation.Nullable;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-
 import com.android.billingclient.api.AcknowledgePurchaseParams;
 import com.android.billingclient.api.AcknowledgePurchaseResponseListener;
 import com.android.billingclient.api.BillingClient;
@@ -16,6 +14,8 @@ import com.android.billingclient.api.BillingResult;
 import com.android.billingclient.api.ConsumeParams;
 import com.android.billingclient.api.ConsumeResponseListener;
 import com.android.billingclient.api.Purchase;
+import com.android.billingclient.api.PurchaseHistoryRecord;
+import com.android.billingclient.api.PurchaseHistoryResponseListener;
 import com.android.billingclient.api.PurchasesUpdatedListener;
 import com.android.billingclient.api.SkuDetails;
 import com.android.billingclient.api.SkuDetailsParams;
@@ -25,7 +25,6 @@ import com.google.billing.listener.BaseBillingUpdateListener;
 import com.google.billing.receiver.BillingPurchasesReceiver;
 import com.google.billing.ui.PurchasesActivity;
 import com.google.billing.utils.LogUtils;
-
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
@@ -98,17 +97,17 @@ public class BillingManager implements PurchasesUpdatedListener {
      * 异步查询商品信息
      *
      * @param skuId       商品唯一ID
-     * @param billingType 商品类型 详见{@link com.android.billingclient.api.BillingClient.SkuType}
+     * @param skuType 商品类型 详见{@link com.android.billingclient.api.BillingClient.SkuType}
      */
-    public void querySkuDetailAsyn(final String skuId, final String billingType) {
-        LogUtils.e("异步查询商品详情-->[" + skuId + ",type:" + billingType + "]");
+    public void querySkuDetailAsyn(final String skuId, final String skuType) {
+        LogUtils.e("异步查询商品详情-->[" + skuId + ",type:" + skuType + "]");
         executeServiceRequest(new Runnable() {
             @Override
             public void run() {
                 List<String> skuList = new ArrayList<>();
                 skuList.add(skuId);
                 final SkuDetailsParams.Builder params = SkuDetailsParams.newBuilder();
-                params.setSkusList(skuList).setType(billingType);
+                params.setSkusList(skuList).setType(skuType);
                 mBillingClient.querySkuDetailsAsync(params.build(),
                         new SkuDetailsResponseListener() {
                             @Override
@@ -127,6 +126,27 @@ public class BillingManager implements PurchasesUpdatedListener {
                                     if (billingUpdatesListener != null) {
                                         billingUpdatesListener.onQuerySkuDetailFailure(billingResult.getResponseCode(), billingResult.getDebugMessage());
                                     }
+                                }
+                            }
+                        });
+            }
+        });
+    }
+
+    /**
+     * 异步查询购买历史商品详情
+     * @param skuType 商品类型 {@link com.android.billingclient.api.BillingClient.SkuType}
+     */
+    public void queryPurchaseHistoryAsync(final @BillingClient.SkuType String skuType){
+        LogUtils.e("异步查询购买历史商品详情-->[" + skuType + "]");
+        executeServiceRequest(new Runnable() {
+            @Override
+            public void run() {
+                mBillingClient.queryPurchaseHistoryAsync(skuType,new PurchaseHistoryResponseListener() {
+                            @Override
+                            public void onPurchaseHistoryResponse(BillingResult billingResult, List<PurchaseHistoryRecord> list) {
+                                if (billingUpdatesListener != null){
+                                    billingUpdatesListener.onPurchaseHistoryResponse(billingResult, list);
                                 }
                             }
                         });
@@ -175,17 +195,17 @@ public class BillingManager implements PurchasesUpdatedListener {
      * </p>
      *
      * @param skuId       商品ID
-     * @param billingType 商品类型
+     * @param skuType 商品类型
      */
-    public void quicknessPurchase(final String skuId, final String billingType) {
-        LogUtils.e("异步查询商品详情-->[" + skuId + ",type:" + billingType + "]");
+    public void quicknessPurchase(final String skuId, final String skuType) {
+        LogUtils.e("异步查询商品详情-->[" + skuId + ",type:" + skuType + "]");
         executeServiceRequest(new Runnable() {
             @Override
             public void run() {
                 List<String> skuList = new ArrayList<>();
                 skuList.add(skuId);
                 final SkuDetailsParams.Builder params = SkuDetailsParams.newBuilder();
-                params.setSkusList(skuList).setType(billingType);
+                params.setSkusList(skuList).setType(skuType);
                 mBillingClient.querySkuDetailsAsync(params.build(),
                         new SkuDetailsResponseListener() {
                             @Override
@@ -288,7 +308,7 @@ public class BillingManager implements PurchasesUpdatedListener {
      * 连接断开重试策略
      */
     private void executeServiceRequest(Runnable runnable) {
-        if (mBillingClient != null && mBillingClient.isReady() && mIsServiceConnected) {
+        if (mBillingClient != null) {
             runnable.run();
         } else {
             startServiceConnection(runnable);

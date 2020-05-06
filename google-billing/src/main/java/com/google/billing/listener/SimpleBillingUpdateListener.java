@@ -2,6 +2,7 @@ package com.google.billing.listener;
 
 import com.android.billingclient.api.BillingResult;
 import com.android.billingclient.api.Purchase;
+import com.android.billingclient.api.PurchaseHistoryRecord;
 import com.android.billingclient.api.SkuDetails;
 import java.util.List;
 
@@ -9,6 +10,11 @@ import java.util.List;
  * @author gaopengfei on 2019/08/14.
  */
 public abstract class SimpleBillingUpdateListener extends BaseBillingUpdateListener {
+
+    @Override
+    public void onPurchaseHistoryResponse(BillingResult billingResult, List<PurchaseHistoryRecord> list) {
+
+    }
 
     @Override
     public void onQuerySkuDetailSuccess(List<SkuDetails> skuDetailsList) {

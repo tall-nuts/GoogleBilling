@@ -13,6 +13,11 @@
 
 ### CHANGELOG
 
+### [V1.0.5] - [2020-05-06]
+
+- Change: 升级billing->2.2.0
+- Change: 增加查询历史购买记录方法及回调
+
 ### [V1.0.4] - [2020-03-09]
 
 - Fix: 修复BillingManager中空指针bug
