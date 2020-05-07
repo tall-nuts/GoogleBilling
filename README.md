@@ -1,5 +1,7 @@
 # Google-Billing
 
+![](https://travis-ci.org/pengfeigao/GoogleBilling.svg?branch=master)
+
 :rocket: 谷歌应用内支付（Google Billing 3）二次封装
 
 [谷歌应用内支付文档](https://developer.android.com/google/play/billing/billing_overview.html?hl=zh-CN)
@@ -11,36 +13,36 @@
 ![支付方式二](https://github.com/pengfeigao/GoogleBilling/tree/master/screenshots/images/billing04.png)
 ![支付方式一](https://github.com/pengfeigao/GoogleBilling/tree/master/screenshots/images/billing05.png) 
 
-### CHANGELOG
+#### CHANGELOG
 
-### [V1.0.5] - [2020-05-06]
+##### [V1.0.5] - [2020-05-06]
 
 - Change: 升级billing->2.2.0
 - Change: 增加查询历史购买记录方法及回调
 
-### [V1.0.4] - [2020-03-09]
+##### [V1.0.4] - [2020-03-09]
 
 - Fix: 修复BillingManager中空指针bug
 
-### [V1.0.3] - [2020-02-03]
+##### [V1.0.3] - [2020-02-03]
 
 - 升级依赖Google Billing2.1.0
 
-### [V1.0.2] - [2019-09-19]
+##### [V1.0.2] - [2019-09-19]
 
 - 增加缓存购买信息查询并确认购买方法
 
-### [V1.0.1] - [2019-09-03]
+##### [V1.0.1] - [2019-09-03]
 
 - Change: 添加消耗型和非消耗型商品失效方法
 
-### [V1.0.0] - [2019-09-02]
+##### [V1.0.0] - [2019-09-02]
 
 - :tada: 初版。
 
 ***
 
-### 集成
+#### 集成
 
 - 在app build.gradle添加依赖
 
@@ -48,7 +50,7 @@
     implementation 'cn.imeina:google-billing:1.0.0'
 ```
 
-### 使用
+#### 使用
 
 - SDK包含了2种支付方式。一种是直接调用谷歌原生应用内支付，一种是传递url进行H5支付
 
