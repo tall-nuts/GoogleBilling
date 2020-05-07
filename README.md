@@ -1,6 +1,6 @@
 # Google-Billing
 
-![](https://travis-ci.org/pengfeigao/GoogleBilling.svg?branch=master)
+![](https://travis-ci.org/pengfeigao/GoogleBilling.svg?branch=master)[ ![Download](https://api.bintray.com/packages/akid/maven/google-billing/images/download.svg) ](https://bintray.com/akid/maven/google-billing/_latestVersion)
 
 :rocket: 谷歌应用内支付（Google Billing 3）二次封装
 
