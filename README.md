@@ -8,10 +8,10 @@
 
 
 ![支付方式一](https://github.com/pengfeigao/GoogleBilling/blob/master/screenshots/billing01.png) 
-![支付方式二](https://github.com/pengfeigao/GoogleBilling/blob/master/screenshots/images/billing02.png)
-![支付方式一](https://github.com/pengfeigao/GoogleBilling/blob/master/screenshots/images/billing03.png) 
-![支付方式二](https://github.com/pengfeigao/GoogleBilling/blob/master/screenshots/images/billing04.png)
-![支付方式一](https://github.com/pengfeigao/GoogleBilling/blob/master/screenshots/images/billing05.png) 
+![支付方式二](https://github.com/pengfeigao/GoogleBilling/blob/master/screenshots/billing02.png)
+![支付方式一](https://github.com/pengfeigao/GoogleBilling/blob/master/screenshots/billing03.png) 
+![支付方式二](https://github.com/pengfeigao/GoogleBilling/blob/master/screenshots/billing04.png)
+![支付方式一](https://github.com/pengfeigao/GoogleBilling/blob/master/screenshots/billing05.png) 
 
 #### CHANGELOG
 
