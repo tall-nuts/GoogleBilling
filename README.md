@@ -15,6 +15,11 @@
 
 #### CHANGELOG
 
+##### [V1.0.5] - [2020-12-16]
+
+- Change: 更新billing->3.0.2
+- Change: 更改仓库group：cn.imeina -> com.coder1024
+
 ##### [V1.0.5] - [2020-05-06]
 
 - Change: 升级billing->2.2.0
@@ -47,7 +52,7 @@
 - 在app build.gradle添加依赖
 
 ```
-    implementation 'cn.imeina:google-billing:1.0.0'
+    implementation 'com.coder1024:google-billing:1.0.6'
 ```
 
 #### 使用
@@ -64,9 +69,9 @@ prvate BillingManager billingManager;
 BaseBillingUpdateListener billingUpdateListener = new SimpleBillingUpdateListener() {
     @Override
     public void onBillingClientSetupFinished() {
-        // 在与Google Play建立好连接后，进行支付
+        // 3. 在与Google Play建立好连接后，进行支付
         if (billingManager != null) {
-            billingManager.quicknessPurchase("7days", BillingClient.SkuType.SUBS);
+            billingManager.launchBillingFlow("7days", BillingClient.SkuType.SUBS);
         }
     }
 
@@ -101,7 +106,7 @@ public void googleBilling(){
     billingManager.startServiceConnection(null);
 }
 
-// 3. 释放资源
+// 4. 释放资源
 @Override
 protected void onDestroy() {
     super.onDestroy();
@@ -150,7 +155,7 @@ BillingPurchasesReceiver billingPurchasesReceiver = new BillingPurchasesReceiver
 // 2. 发起H5支付
 public void purchase() {
     BillingManager billingManager = new BillingManager(this, billingPurchasesReceiver);
-    billingManager.quicknessPurchase("<三方H5支付网址>");
+    billingManager.launchBillingFlow("<三方H5支付网址>");
 }
 
 // 3. 释放资源

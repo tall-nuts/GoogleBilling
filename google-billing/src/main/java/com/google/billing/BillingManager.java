@@ -3,6 +3,7 @@ package com.google.billing;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.IntentFilter;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import com.android.billingclient.api.AcknowledgePurchaseParams;
@@ -30,7 +31,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 使用Google Play结算版本2.0及以上，必须在3天内确认所有购买交易。如果没有正确确认，将导致系统对相应的购买交易按退款处理。
+ * 使用Google Play结算版本2.0及以上，必须在3天内确认所有购买交易。
+ * 如果没有正确确认，将导致系统对相应的购买交易按退款处理。
  * 确认购买交易有3种方式：
  * 1. 消耗型商品，客户端使用API consumeAsync()
  * 2. 对于非消耗型商品，客户端使用API acknowledgePurchase()
@@ -42,7 +44,7 @@ public class BillingManager implements PurchasesUpdatedListener {
 
     private BillingClient mBillingClient;
     private boolean mIsServiceConnected;
-    private WeakReference<Activity> weakReference;
+    private final WeakReference<Activity> weakReference;
     private BaseBillingUpdateListener billingUpdatesListener;
     private BillingPurchasesReceiver billingPurchasesReceiver;
 
@@ -69,14 +71,14 @@ public class BillingManager implements PurchasesUpdatedListener {
                 .build();
         mBillingClient.startConnection(new BillingClientStateListener() {
             @Override
-            public void onBillingSetupFinished(BillingResult billingResult) {
+            public void onBillingSetupFinished(@NonNull BillingResult billingResult) {
                 if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
                     // The BillingClient is ready. You can query purchases here.
                     if (billingUpdatesListener != null) {
                         billingUpdatesListener.onBillingClientSetupFinished();
                     }
                     mIsServiceConnected = true;
-                    LogUtils.e("Google Play connect success!");
+                    LogUtils.e("Google billing service connect success!");
                     if (runnable != null) {
                         runnable.run();
                     }
@@ -88,7 +90,7 @@ public class BillingManager implements PurchasesUpdatedListener {
                 // Try to restart the connection on the next request to
                 // Google Play by calling the startConnection() method.
                 mIsServiceConnected = false;
-                LogUtils.e("Google Play connect fail!");
+                LogUtils.e("Google billing service connect fail!");
             }
         });
     }
@@ -100,7 +102,7 @@ public class BillingManager implements PurchasesUpdatedListener {
      * @param skuType 商品类型 详见{@link com.android.billingclient.api.BillingClient.SkuType}
      */
     public void querySkuDetailAsyn(final String skuId, final String skuType) {
-        LogUtils.e("异步查询商品详情-->[" + skuId + ",type:" + skuType + "]");
+        LogUtils.e("querySkuDetailAsyn >>> [" + skuId + ",type:" + skuType + "]");
         executeServiceRequest(new Runnable() {
             @Override
             public void run() {
@@ -111,7 +113,7 @@ public class BillingManager implements PurchasesUpdatedListener {
                 mBillingClient.querySkuDetailsAsync(params.build(),
                         new SkuDetailsResponseListener() {
                             @Override
-                            public void onSkuDetailsResponse(BillingResult billingResult, List<SkuDetails> skuDetailsList) {
+                            public void onSkuDetailsResponse(@NonNull BillingResult billingResult, List<SkuDetails> skuDetailsList) {
                                 // Process the result.
                                 if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK && skuDetailsList != null) {
                                     if (billingUpdatesListener != null) {
@@ -119,7 +121,7 @@ public class BillingManager implements PurchasesUpdatedListener {
                                     }
                                     if (!skuDetailsList.isEmpty()) {
                                         for (SkuDetails skuDetails : skuDetailsList) {
-                                            LogUtils.e("异步查询商品详情成功--->[skuDetails:" + skuDetails.toString() + "]");
+                                            LogUtils.e("querySkuDetailAsyn success >>> [skuDetails:" + skuDetails.toString() + "]");
                                         }
                                     }
                                 } else {
@@ -138,13 +140,13 @@ public class BillingManager implements PurchasesUpdatedListener {
      * @param skuType 商品类型 {@link com.android.billingclient.api.BillingClient.SkuType}
      */
     public void queryPurchaseHistoryAsync(final @BillingClient.SkuType String skuType){
-        LogUtils.e("异步查询购买历史商品详情-->[" + skuType + "]");
+        LogUtils.e("queryPurchaseHistoryAsync >>> [" + skuType + "]");
         executeServiceRequest(new Runnable() {
             @Override
             public void run() {
                 mBillingClient.queryPurchaseHistoryAsync(skuType,new PurchaseHistoryResponseListener() {
                             @Override
-                            public void onPurchaseHistoryResponse(BillingResult billingResult, List<PurchaseHistoryRecord> list) {
+                            public void onPurchaseHistoryResponse(@NonNull BillingResult billingResult, List<PurchaseHistoryRecord> list) {
                                 if (billingUpdatesListener != null){
                                     billingUpdatesListener.onPurchaseHistoryResponse(billingResult, list);
                                 }
@@ -163,7 +165,7 @@ public class BillingManager implements PurchasesUpdatedListener {
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                // 同步查询历史购买
+                /* 同步查询历史购买 */
                 Purchase.PurchasesResult purchasesResult = mBillingClient.queryPurchases(skuType);
                 if (purchasesResult != null && purchasesResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
                     List<Purchase> purchasesList = purchasesResult.getPurchasesList();
@@ -172,11 +174,11 @@ public class BillingManager implements PurchasesUpdatedListener {
                             if (purchase.getPurchaseState() == Purchase.PurchaseState.PURCHASED) {
                                 if (!purchase.isAcknowledged()) {
                                     if (BillingClient.SkuType.SUBS.equals(skuType)) {
-                                        acknowledgePurchase(purchase.getPurchaseToken(), purchase.getDeveloperPayload());
-                                        LogUtils.e("确认非消耗型商品购买成功->[orderId：" + purchase.getOrderId() + "]");
+                                        acknowledgePurchase(purchase.getPurchaseToken());
+                                        LogUtils.e("acknowledgePurchase success >>> [orderId：" + purchase.getOrderId() + "]");
                                     } else if (BillingClient.SkuType.INAPP.equals(skuType)) {
-                                        consumeAsync(purchase.getPurchaseToken(), purchase.getDeveloperPayload());
-                                        LogUtils.e("确认消耗型商品购买成功->[orderId：" + purchase.getOrderId() + "]");
+                                        consumeAsync(purchase.getPurchaseToken());
+                                        LogUtils.e("consumeAsync success >>> [orderId：" + purchase.getOrderId() + "]");
                                     }
                                 }
                             }
@@ -190,15 +192,15 @@ public class BillingManager implements PurchasesUpdatedListener {
 
     /**
      * <p>
-     * 急速购买
+     * 启动内购流程
      * 商品查询成功后直接进入购买流程，如果查询商品失败则直接执行{@link BaseBillingUpdateListener#onPurchasesFailure(int, String)}
      * </p>
      *
      * @param skuId       商品ID
      * @param skuType 商品类型
      */
-    public void quicknessPurchase(final String skuId, final String skuType) {
-        LogUtils.e("异步查询商品详情-->[" + skuId + ",type:" + skuType + "]");
+    public void launchBillingFlow(final String skuId, final String skuType) {
+        LogUtils.e("launchBillingFlow > querySkuDetailsAsync >>> [" + skuId + ",type:" + skuType + "]");
         executeServiceRequest(new Runnable() {
             @Override
             public void run() {
@@ -209,14 +211,14 @@ public class BillingManager implements PurchasesUpdatedListener {
                 mBillingClient.querySkuDetailsAsync(params.build(),
                         new SkuDetailsResponseListener() {
                             @Override
-                            public void onSkuDetailsResponse(BillingResult billingResult, List<SkuDetails> skuDetailsList) {
+                            public void onSkuDetailsResponse(@NonNull BillingResult billingResult, List<SkuDetails> skuDetailsList) {
                                 // Process the result.
                                 if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK && skuDetailsList != null) {
                                     if (!skuDetailsList.isEmpty()) {
                                         for (SkuDetails skuDetails : skuDetailsList) {
                                             // 发起内购
-                                            purchase(skuDetails);
-                                            LogUtils.e("查询商品详情成功--->[skuDetails:" + skuDetails.toString() + "]");
+                                            launchBillingFlow(skuDetails);
+                                            LogUtils.e("querySkuDetailsAsync success >>> [skuDetails:" + skuDetails.toString() + "]");
                                         }
                                     }
                                 } else {
@@ -241,7 +243,7 @@ public class BillingManager implements PurchasesUpdatedListener {
      *
      * @param skuDetails 商品详情
      */
-    private void purchase(final SkuDetails skuDetails) {
+    private void launchBillingFlow(final SkuDetails skuDetails) {
         // Retrieve a value for "skuDetails" by calling querySkuDetailsAsync().
         Runnable runnable = new Runnable() {
             @Override
@@ -250,7 +252,7 @@ public class BillingManager implements PurchasesUpdatedListener {
                         .setSkuDetails(skuDetails)
                         .build();
                 int responseCode = mBillingClient.launchBillingFlow(weakReference.get(), flowParams).getResponseCode();
-                LogUtils.e("支付响应码::--->[responseCode:" + responseCode + "]");
+                LogUtils.e("launchBillingFlow >>> [responseCode:" + responseCode + "]");
             }
         };
         executeServiceRequest(runnable);
@@ -259,18 +261,17 @@ public class BillingManager implements PurchasesUpdatedListener {
     /**
      * 对消耗型商品进行确认购买处理
      */
-    public void consumeAsync(final String purchaseToken, final String payload) {
+    public void consumeAsync(final String purchaseToken) {
         executeServiceRequest(new Runnable() {
             @Override
             public void run() {
                 ConsumeParams consumeParams =
                         ConsumeParams.newBuilder()
                                 .setPurchaseToken(purchaseToken)
-                                .setDeveloperPayload(payload)
                                 .build();
                 mBillingClient.consumeAsync(consumeParams, new ConsumeResponseListener() {
                     @Override
-                    public void onConsumeResponse(BillingResult billingResult, String purchaseToken) {
+                    public void onConsumeResponse(@NonNull BillingResult billingResult, @NonNull String purchaseToken) {
                         if (billingUpdatesListener != null) {
                             billingUpdatesListener.onConsumeFinished(purchaseToken, billingResult);
                         }
@@ -283,18 +284,17 @@ public class BillingManager implements PurchasesUpdatedListener {
     /**
      * 对非消耗型商品进行确认购买处理
      */
-    public void acknowledgePurchase(final String purchaseToken, final String payload) {
+    public void acknowledgePurchase(final String purchaseToken) {
         executeServiceRequest(new Runnable() {
             @Override
             public void run() {
                 AcknowledgePurchaseParams acknowledgePurchaseParams =
                         AcknowledgePurchaseParams.newBuilder()
                                 .setPurchaseToken(purchaseToken)
-                                .setDeveloperPayload(payload)
                                 .build();
                 mBillingClient.acknowledgePurchase(acknowledgePurchaseParams, new AcknowledgePurchaseResponseListener() {
                     @Override
-                    public void onAcknowledgePurchaseResponse(BillingResult billingResult) {
+                    public void onAcknowledgePurchaseResponse(@NonNull BillingResult billingResult) {
                         if (billingUpdatesListener != null) {
                             billingUpdatesListener.onAcknowledgePurchaseResponse(billingResult);
                         }
@@ -324,21 +324,21 @@ public class BillingManager implements PurchasesUpdatedListener {
             if (billingUpdatesListener != null) {
                 billingUpdatesListener.onPurchasesUpdated(purchases);
             }
-            LogUtils.e("支付成功 --> [code："
+            LogUtils.e("Payment success >>> [code："
                     + billingResult.getResponseCode() + ",message：" + billingResult.getDebugMessage() + "]");
         } else if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.USER_CANCELED) {
             // Handle an error caused by a user cancelling the purchase flow.
             if (billingUpdatesListener != null) {
                 billingUpdatesListener.onPurchasesCancel();
             }
-            LogUtils.e("支付取消 --> [code："
+            LogUtils.e("Payment cancel >>> [code："
                     + billingResult.getResponseCode() + ",message：" + billingResult.getDebugMessage() + "]");
         } else {
             // Handle any other error codes.
             if (billingUpdatesListener != null) {
                 billingUpdatesListener.onPurchasesFailure(billingResult.getResponseCode(), billingResult.getDebugMessage());
             }
-            LogUtils.e("支付出错 --> [code："
+            LogUtils.e("Payment failure >>> [code："
                     + billingResult.getResponseCode() + ",message：" + billingResult.getDebugMessage() + "]");
         }
     }

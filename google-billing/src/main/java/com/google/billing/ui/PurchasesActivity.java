@@ -20,7 +20,6 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
-
 import com.android.billingclient.api.BillingClient;
 import com.android.billingclient.api.Purchase;
 import com.google.billing.BillingManager;
@@ -31,9 +30,7 @@ import com.google.billing.listener.SimpleBillingUpdateListener;
 import com.google.billing.model.PurchaseInfo;
 import com.google.billing.utils.LogUtils;
 import com.google.billing.utils.NetworkUtils;
-
 import java.util.List;
-
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -307,7 +304,7 @@ public class PurchasesActivity extends AppCompatActivity {
      */
     public static class JsBridgerHandler {
 
-        private Activity activity;
+        private final Activity activity;
 
         public JsBridgerHandler(Activity activity) {
             this.activity = activity;
@@ -325,7 +322,7 @@ public class PurchasesActivity extends AppCompatActivity {
 
                 @Override
                 public void onBillingClientSetupFinished() {
-                    billingManager.quicknessPurchase(skuId, billingType);
+                    billingManager.launchBillingFlow(skuId, billingType);
                 }
 
                 @Override
@@ -340,7 +337,7 @@ public class PurchasesActivity extends AppCompatActivity {
                         intent.putExtra("data", purchaseInfo);
                         LocalBroadcastManager.getInstance(activity).sendBroadcast(intent);
                         // 消耗商品
-                        billingManager.consumeAsync(purchase.getPurchaseToken(), purchase.getDeveloperPayload());
+                        billingManager.consumeAsync(purchase.getPurchaseToken());
                     }
                 }
 
@@ -363,7 +360,7 @@ public class PurchasesActivity extends AppCompatActivity {
                 }
             });
             billingManager.startServiceConnection(null);
-            LogUtils.e("商品skuId:" + skuId + ",billingType:" + billingType);
+            LogUtils.e("skuId:" + skuId + ", billingType:" + billingType);
         }
     }
 }

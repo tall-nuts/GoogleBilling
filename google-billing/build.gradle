@@ -31,23 +31,21 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'androidx.appcompat:appcompat:1.1.0'
+    implementation 'androidx.appcompat:appcompat:1.2.0'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.2.0'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
-    api 'com.android.billingclient:billing:2.2.0'
-    api 'androidx.constraintlayout:constraintlayout:1.1.3'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+    api 'com.android.billingclient:billing:3.0.2'
+    api 'androidx.constraintlayout:constraintlayout:2.0.4'
     implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.0.0'
 }
 
 //添加
 publish {
     userOrg = 'akid'
-    groupId = 'cn.imeina'
+    groupId = 'com.coder1024'
     artifactId = 'google-billing'
-    publishVersion = '1.0.5'
+    publishVersion = '1.0.6'
     desc = 'This is Google Billing secondary packaging'
     website = 'https://github.com/pengfeigao/GoogleBilling'
 }
-
-//

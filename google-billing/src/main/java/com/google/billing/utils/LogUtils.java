@@ -7,7 +7,7 @@ import android.util.Log;
  */
 public class LogUtils {
 
-    private static final String TAG = "JZ-PAYMENT";
+    private static final String TAG = "GoogleBilling";
     private static boolean mDebug = true;
 
     public static void setDebug(boolean debug){

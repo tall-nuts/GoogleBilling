@@ -32,7 +32,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         @Override
         public void onBillingClientSetupFinished() {
             if (billingManager != null) {
-                billingManager.quicknessPurchase("90days", BillingClient.SkuType.SUBS);
+                billingManager.launchBillingFlow("90days", BillingClient.SkuType.SUBS);
             }
         }
 
