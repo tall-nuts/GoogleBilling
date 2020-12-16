@@ -52,7 +52,7 @@
 - 在app build.gradle添加依赖
 
 ```
-    implementation 'com.coder1024:google-billing:1.0.6'
+implementation 'com.coder1024:google-billing:1.0.6'
 ```
 
 #### 使用
